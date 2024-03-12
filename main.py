@@ -25,12 +25,13 @@ if len(sys.argv) > 1 and (sys.argv[1] == "-p" or sys.argv[1] == "-parse"):
         documents = []
 
         for phrase in phrases:
-            subdocument = {
-                "Timestamp": phrase["result"][0]["start"],
-                "Audio": phrase["text"],
-                "Filename": file_name,
-            }
-            documents.append(subdocument)
+            if "result" in phrase:
+                subdocument = {
+                    "Timestamp": phrase["result"][0]["start"],
+                    "Audio": phrase["text"],
+                    "Filename": file_name,
+                }
+                documents.append(subdocument)
 
         index_documents(es, documents)
 
