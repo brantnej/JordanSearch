@@ -40,7 +40,8 @@ while True:
     query = input("Enter a query:")
     res = search_documents(es, query, get_full_document=False)
     output = [{"Timestamp": i["_source"]["Timestamp"],
-               "Audio": i["_source"]["Audio"],
+               # "Audio": i["_source"]["Audio"],
                "File": i["_source"]["Filename"]}
-              for i in res['hits']]
-    print(res)
+              for i in res['hits']['hits']]
+    for i in range(len(output)):
+        print("#" + str(i + 1) + ": " + str(output[i]))
