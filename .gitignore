@@ -1,0 +1,4 @@
+input/*
+__pycache__/
+vosk-model-*
+audio.wav
