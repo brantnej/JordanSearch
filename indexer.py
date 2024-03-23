@@ -1,7 +1,9 @@
 from elasticsearch import Elasticsearch, helpers
 
-partial_index = "cs499-subdocuments"
-full_index = "cs499-fulldocuments"
+partial_index = "cs499-subdocuments-final"
+full_index = "cs499-fulldocuments-final"
+
+image_boost = 2
 
 def new_search_engine():
     es = Elasticsearch('http://localhost:9200', verify_certs=False)
@@ -10,12 +12,9 @@ def new_search_engine():
 def index_documents(es, subdocuments):
     full_document = {
         "Filename": subdocuments[0]["Filename"],
-        "Visual": "",
-        "Audio": "",
+        "Image": " ".join([i["Image"] for i in subdocuments]),
+        "Audio": " ".join([i["Audio"] for i in subdocuments])
     }
-    for i in range(len(subdocuments)):
-        # full_document["Visual"] = full_document["Visual"] + subdocuments[i]["Visual"] + " "
-        full_document["Audio"] = full_document["Audio"] + subdocuments[i]["Audio"]
 
     res = helpers.bulk(es, subdocuments, index=partial_index)
     # TODO: error check res
@@ -28,9 +27,8 @@ def search_documents(es, query, get_full_document):
         index_name = full_index
     else:
         index_name = partial_index
-    res = es.search(index=index_name, track_total_hits=True, query={"match": {
-        "Audio": {"query": query, "operator": "OR"},
-        # "Visual": {"query": query, "operator": "OR"},
+    res = es.search(index=index_name, track_total_hits=True, query={"multi_match": {
+        "query": query,
+        "fields": ["Image^" + str(image_boost), "Audio"]
         }})
-    
     return res

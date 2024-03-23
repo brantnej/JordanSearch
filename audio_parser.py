@@ -3,9 +3,9 @@ import wave
 import json
 from datetime import datetime
 
-vosk_model_path = "vosk-model-en-us-0.42-gigaspeech"
+vosk_model_path = "models/vosk-model-en-us-0.42-gigaspeech"
 
-def new_model():
+def new_audio_model():
     model = Model(vosk_model_path)
     return model
 

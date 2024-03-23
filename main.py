@@ -1,6 +1,8 @@
-from mp4_to_wav import *
+from conversions import *
 from indexer import *
 from audio_parser import *
+from image_parser import *
+import math
 import sys
 
 path = './input'
@@ -11,29 +13,38 @@ if not es.ping():
     print("ElasticSearch is not running!")
     exit()
 
-if len(sys.argv) > 1 and (sys.argv[1] == "-p" or sys.argv[1] == "-parse"):
+if len(sys.argv) > 1 and (sys.argv[1] == "-p" or sys.argv[1] == "--parse"):
+
+    print("Initializing Models...")
+
+    image_model = new_image_model()
+    audio_model = new_audio_model()
 
     print("Beginning Indexing...")
 
-    model = new_model()
-
     for file_name in os.listdir(path):
-        audio_file = convert_file(path + '/' + file_name)
-        phrases = parse_file(model, audio_file)
-        clean_up_audio_converter()
+        audio_file = extract_audio(path + '/' + file_name)
+        phrases = parse_file(audio_model, audio_file)
 
         documents = []
 
         for phrase in phrases:
             if "result" in phrase:
+                timestamp = seconds_to_timestamp(math.ceil(float(phrase["result"][0]["start"])))
+                image = extract_image(file_name=path + '/' + file_name, timestamp=timestamp)
+                res = detect_objects(image_model, image)
                 subdocument = {
                     "Timestamp": phrase["result"][0]["start"],
                     "Audio": phrase["text"],
                     "Filename": file_name,
+                    "Image": " ".join([i['name'] for i in res])
                 }
                 documents.append(subdocument)
-
+    
         index_documents(es, documents)
+
+    clean_up_audio()
+    clean_up_image()
 
     print("Search engine ready!")
 
@@ -41,7 +52,8 @@ while True:
     query = input("Enter a query:")
     res = search_documents(es, query, get_full_document=False)
     output = [{"Timestamp": i["_source"]["Timestamp"],
-               # "Audio": i["_source"]["Audio"],
+               "Audio": i["_source"]["Audio"],
+               "Image": i["_source"]["Image"],
                "File": i["_source"]["Filename"]}
               for i in res['hits']['hits']]
     for i in range(len(output)):
