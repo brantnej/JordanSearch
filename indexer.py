@@ -3,6 +3,7 @@ from elasticsearch import Elasticsearch, helpers
 partial_index = "cs499-subdocuments-final"
 full_index = "cs499-fulldocuments-final"
 
+# choose how much to weight image content over audio content
 image_boost = 2
 
 def new_search_engine():
@@ -11,13 +12,13 @@ def new_search_engine():
 
 def index_documents(es, subdocuments):
     full_document = {
+        "Timestamp": "0",
         "Filename": subdocuments[0]["Filename"],
         "Image": " ".join([i["Image"] for i in subdocuments]),
         "Audio": " ".join([i["Audio"] for i in subdocuments])
     }
 
-    res = helpers.bulk(es, subdocuments, index=partial_index)
-    # TODO: error check res
+    helpers.bulk(es, subdocuments, index=partial_index)
     res = es.index(index=full_index, document=full_document)
     return res
 

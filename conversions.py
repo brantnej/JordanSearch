@@ -22,7 +22,6 @@ def extract_image(file_name, timestamp):
 
     return out_image
 
-
 def clean_up_audio():
     if os.path.exists(out_file):
         os.remove(out_file)

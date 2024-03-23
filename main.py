@@ -13,7 +13,7 @@ if not es.ping():
     print("ElasticSearch is not running!")
     exit()
 
-if len(sys.argv) > 1 and (sys.argv[1] == "-p" or sys.argv[1] == "--parse"):
+if len(sys.argv) > 1 and ("-p" in sys.argv or "--parse" in sys.argv):
 
     print("Initializing Models...")
 
@@ -48,9 +48,13 @@ if len(sys.argv) > 1 and (sys.argv[1] == "-p" or sys.argv[1] == "--parse"):
 
     print("Search engine ready!")
 
+get_full_document = False
+if "-f" in sys.argv or "--full" in sys.argv:
+    get_full_document = True
+
 while True:
     query = input("Enter a query:")
-    res = search_documents(es, query, get_full_document=False)
+    res = search_documents(es, query, get_full_document=get_full_document)
     output = [{"Timestamp": i["_source"]["Timestamp"],
                "Audio": i["_source"]["Audio"],
                "Image": i["_source"]["Image"],
